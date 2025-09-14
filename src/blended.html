@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blended MLP + SOM Parameters</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #4f46e5;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.5; }
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      opacity: 0;
+      width: max-content;
+      background-color: #111827;
+      color: #fff;
+      text-align: center;
+      padding: 4px 8px;
+      border-radius: 6px;
+      position: absolute;
+      z-index: 10;
+      bottom: -2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
+    }
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    .footer {
+      background: white;
+      border-top: 1px solid #E5E7EB;
+      padding: 24px;
+      margin-top: 40px;
+    }
+    .format-card.selected {
+      border: 2px solid #4f46e5;
+      background-color: #e0e7ff;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-indigo-50 to-blue-50 min-h-screen p-0">
+
+  <!-- Navbar -->
+  <nav class="navbar bg-white shadow-md px-6 py-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="logo-icon relative">
+          <i class="fas fa-brain text-xl text-indigo-600"></i>
+        </div>
+        <span class="ml-2 text-2xl font-bold" style="font-family: 'Poppins', sans-serif; color: #130960;">
+          NeuralFlow
+        </span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium flex items-center">
+          <span class="pulse-dot mr-2"></span> Workflow
+        </span>
+        <div class="tooltip">
+          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white cursor-pointer">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="tooltip-text">Your Profile</span>
+        </div>
+        <button class="p-2 text-gray-500 hover:text-gray-700 tooltip">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="tooltip-text">Logout</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="w-full max-w-6xl bg-white shadow-2xl rounded-3xl p-10 mx-auto mt-10">
+    <h1 class="text-4xl font-bold text-indigo-600 text-center mb-3">Blended SOM Parameters</h1>
+    <p class="text-gray-600 text-center mb-10">Configure 1 to 3 SOMs for the blended MLP-SOM model</p>
+
+    <form id="somForm" class="space-y-10">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+        <label for="numSoms" class="font-medium text-gray-700 text-lg">Number of SOMs:</label>
+        <select id="numSoms" class="border border-indigo-300 rounded-xl p-3 shadow focus:ring focus:ring-indigo-200" onchange="renderSOMSections()">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+        </select>
+      </div>
+      <div id="som-sections" class="space-y-8"></div>
+      <div class="flex items-center justify-center space-x-6">
+        <button type="button" id="trainBtn" onclick="collectParams()" class="px-8 py-3 bg-indigo-600 text-white text-lg rounded-xl shadow-lg hover:bg-indigo-700 transition">Train Model</button>
+      </div>
+    </form>
+
+    <!-- Training Progress -->
+    <div id="trainingProgress" class="hidden bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Training in Progress</h2>
+      <div class="flex justify-center">
+        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12" style="border-top-color: #4f46e5; animation: spin 1s linear infinite;"></div>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="hidden bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Training Results</h2>
+      <p class="text-gray-500 mb-6">Training completed successfully. Model performance metrics:</p>
+      <div class="flex justify-center">
+        <div class="visualization rounded-xl inline-block">
+          <img src="img/losscurve.png" alt="Training Progress">
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="font-medium text-gray-700 mb-1">Final Accuracy</h4>
+          <p class="text-2xl font-bold text-indigo-600">88.9%</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="font-medium text-gray-700 mb-1">Final Loss</h4>
+          <p class="text-2xl font-bold text-indigo-600">0.32</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Model Section -->
+    <div id="saveModelSection" class="hidden bg-white rounded-2xl shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2 flex items-center">
+        <i class="fas fa-save text-indigo-600 mr-2"></i>
+        Save your model
+      </h2>
+      <p class="text-gray-600 mb-4">Download your trained model in your preferred format</p>
+      <div class="space-y-4 mb-4">
+        <div class="format-card p-4 rounded-lg cursor-pointer bg-indigo-50 border-indigo-100 selected" onclick="selectFormat(this)">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="radio" name="format" class="mr-3" checked>
+              <span class="font-medium text-indigo-700">HDF5 Format</span>
+            </div>
+            <div class="tooltip">
+              <i class="fas fa-question-circle text-indigo-400 hover:text-indigo-600"></i>
+              <span class="tooltip-text">Saves the complete model with weights and architecture. Best for continued training.</span>
+            </div>
+          </div>
+        </div>
+        <div class="format-card p-4 rounded-lg cursor-pointer bg-purple-50 border-purple-100" onclick="selectFormat(this)">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="radio" name="format" class="mr-3">
+              <span class="font-medium text-purple-700">JSON Format</span>
+            </div>
+            <div class="tooltip">
+              <i class="fas fa-question-circle text-purple-400 hover:text-purple-600"></i>
+              <span class="tooltip-text">Saves only the parameters (not the full model). Will appear as parameters in upload history.</span>
+            </div>
+          </div>
+        </div>
+        <div class="format-card p-4 rounded-lg cursor-pointer bg-pink-50 border-pink-100" onclick="selectFormat(this)">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="radio" name="format" class="mr-3">
+              <span class="font-medium text-pink-700">Pickle Format</span>
+            </div>
+            <div class="tooltip">
+              <i class="fas fa-question-circle text-pink-400 hover:text-pink-600"></i>
+              <span class="tooltip-text">Saves the complete Python object. Not human-readable but preserves everything including the training state.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Model Name (optional)</label>
+        <input type="text" placeholder="Enter a descriptive name" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+      </div>
+      <div class="text-right">
+        <button class="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-md hover:shadow-lg flex items-center justify-center mx-auto md:mx-0">
+          <i class="fas fa-download mr-2"></i>
+          Download Model
+        </button>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+  <br>
+
+  <div class="max-w-6xl mx-auto px-6 pb-6">
+    <div class="text-center">
+      <button onclick="window.location.href='workflow.html'" class="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition duration-300 shadow-md hover:shadow-lg inline-flex items-center">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Workflow
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">NeuralFlow</h3>
+          <p class="text-gray-600 mb-4">Advanced Self-Organizing Maps for machine learning and data visualization.</p>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+            <span class="text-sm text-gray-600">System status: Operational</span>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Resources</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Documentation</a></li>
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Tutorials</a></li>
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">API Reference</a></li>
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Blog</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Support</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Help Center</a></li>
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Community Forum</a></li>
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Contact Us</a></li>
+            <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Status</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Connect</h3>
+          <div class="flex space-x-4 mb-4">
+            <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+              <i class="fab fa-github"></i>
+            </a>
+            <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+              <i class="fab fa-linkedin"></i>
+            </a>
+            <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+              <i class="fab fa-discord"></i>
+            </a>
+          </div>
+          <div class="mt-4">
+            <p class="text-sm text-gray-600">Subscribe to our newsletter</p>
+            <div class="flex mt-2">
+              <input type="email" placeholder="Your email" class="flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <button class="bg-indigo-600 text-white px-4 rounded-r-lg hover:bg-indigo-700 transition-colors">Join</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-gray-500 mb-4 md:mb-0">© 2025 NeuralFlow. All rights reserved.</p>
+        <div class="flex space-x-6">
+          <a href="#" class="text-gray-500 hover:text-indigo-600 transition-colors">Terms of Service</a>
+          <a href="#" class="text-gray-500 hover:text-indigo-600 transition-colors">Privacy Policy</a>
+          <a href="#" class="text-gray-500 hover:text-indigo-600 transition-colors">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function renderSOMSections() {
+      const num = parseInt(document.getElementById('numSoms').value);
+      const somSections = document.getElementById('som-sections');
+      somSections.innerHTML = '';
+
+      for (let id = 1; id <= num; id++) {
+        somSections.innerHTML += `
+          <div class="border border-indigo-100 rounded-2xl shadow-md p-6 bg-gradient-to-r from-white to-indigo-50">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-5 flex items-center"><i class='bx bx-slider mr-2 text-indigo-500'></i> SOM ${id} Parameters</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Grid width</label>
+                <input type="number" name="gridWidth${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="8">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Grid height</label>
+                <input type="number" name="gridHeight${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="8">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Initial Learning rate (α)</label>
+                <input type="text" name="lr${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="0.8">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Initial Radius (σ)</label>
+                <input type="text" name="radius${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="0.8">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Iterations</label>
+                <input type="number" name="iters${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="1000">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Initialization</label>
+                <select name="init${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" onchange="toggleRandomFields(${id}, this.value)">
+                  <option value="Random">Random</option>
+                  <option value="PCA">PCA</option>
+                </select>
+                <div id="randomFields${id}" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Min random value</label>
+                    <input type="number" name="minVal${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="0">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Max random value</label>
+                    <input type="number" name="maxVal${id}" class="w-full border border-gray-300 rounded-lg p-3 shadow-sm focus:ring focus:ring-indigo-200" value="1">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }
+    }
+
+    function toggleRandomFields(id, value) {
+      const randomDiv = document.getElementById(`randomFields${id}`);
+      if (value === 'Random') {
+        randomDiv.classList.remove('hidden');
+      } else {
+        randomDiv.classList.add('hidden');
+      }
+    }
+
+    function collectParams() {
+      const num = parseInt(document.getElementById('numSoms').value);
+      const formData = new FormData(document.getElementById('somForm'));
+      let params = [];
+      for (let id = 1; id <= num; id++) {
+        params.push({
+          gridWidth: parseInt(formData.get(`gridWidth${id}`)),
+          gridHeight: parseInt(formData.get(`gridHeight${id}`)),
+          learningRate: parseFloat(formData.get(`lr${id}`).replace(',', '.')),
+          radius: parseFloat(formData.get(`radius${id}`).replace(',', '.')),
+          iterations: parseInt(formData.get(`iters${id}`)),
+          init: formData.get(`init${id}`),
+          minVal: formData.get(`init${id}`) === 'Random' ? parseFloat(formData.get(`minVal${id}`)) : null,
+          maxVal: formData.get(`init${id}`) === 'Random' ? parseFloat(formData.get(`maxVal${id}`)) : null
+        });
+      }
+      // Show training progress
+      document.getElementById('trainingProgress').classList.remove('hidden');
+      // Simulate training for 3 seconds
+      setTimeout(() => {
+        document.getElementById('trainingProgress').classList.add('hidden');
+        document.getElementById('resultsSection').classList.remove('hidden');
+        document.getElementById('saveModelSection').classList.remove('hidden');
+      }, 3000);
+    }
+
+    function selectFormat(element) {
+      document.querySelectorAll('.format-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      element.classList.add('selected');
+      const radio = element.querySelector('input[type="radio"]');
+      radio.checked = true;
+    }
+
+    // Render default (3 SOMs)
+    renderSOMSections();
+  </script>
+</body>
+</html>
