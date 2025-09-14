@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Flow - Workflow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --secondary-gradient: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --purple-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            --blue-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --green-gradient: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+        
+        .card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 18px;
+            transition: all 0.3s ease;
+            background: white;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.35);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-gradient);
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .confirmation-dialog {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .confirmation-dialog.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+        }
+        
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+        }
+        
+        .highlight {
+            animation: highlight 2s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: rgba(34, 197, 94, 0.3); }
+            100% { background-color: transparent; }
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .btn-enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 12px;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+        }
+        
+        .upload-area {
+            transition: all 0.3s ease;
+            border-radius: 14px;
+        }
+        
+        .upload-area.drag-over {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            transform: scale(1.02);
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+            margin: 24px 0;
+        }
+        
+        .task-card {
+            cursor: not-allowed;
+            border: 2px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 20px 16px;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+            position: relative;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+        }
+        
+        .task-card.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+        
+        .task-card.enabled:hover {
+            border-color: #6366f1;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+            transform: translateY(-3px);
+        }
+        
+        .task-card.selected {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #f5f7ff 0%, #eef2ff 100%);
+            opacity: 1;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+        }
+        
+        .task-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .model-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: white;
+        }
+        
+        .model-card:hover {
+            border-color: #6366f1;
+            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        
+        .slide-down {
+            animation: slideDown 0.5s ease forwards;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+                overflow: hidden;
+            }
+            to {
+                opacity: 1;
+                max-height: 1000px;
+                overflow: visible;
+            }
+        }
+        
+        .model-history {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 12px 0;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+        }
+        
+        .disabled-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            z-index: 10;
+        }
+        
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .floating-shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--purple-gradient);
+            top: -150px;
+            right: -150px;
+        }
+        
+        .floating-shape-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--blue-gradient);
+            bottom: -100px;
+            left: -100px;
+        }
+        
+        .header-accent {
+            height: 4px;
+            width: 60px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge-success {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+        
+        .status-badge-warning {
+            background-color: #fffbeb;
+            color: #d97706;
+        }
+        
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .animated-border {
+            position: relative;
+        }
+        
+        .animated-border::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-gradient);
+            transition: width 0.3s ease;
+        }
+        
+        .animated-border:hover::after {
+            width: 100%;
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .glow-effect:hover {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.6s ease forwards;
+        }
+        
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .stagger-item {
+            opacity: 0;
+        }
+        
+        .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 8px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 3px;
+        }
+        .glow-effect {
+  text-shadow: 0 0 8px rgba(99, 102, 241, 0.8),
+               0 0 16px rgba(99, 102, 241, 0.6),
+               0 0 24px rgba(99, 102, 241, 0.4);
+  animation: glow-pulse 2s infinite alternate;
+}
+
+@keyframes glow-pulse {
+  from {
+    text-shadow: 0 0 6px rgba(99, 102, 241, 0.6),
+                 0 0 12px rgba(99, 102, 241, 0.4);
+  }
+  to {
+    text-shadow: 0 0 12px rgba(99, 102, 241, 1),
+                 0 0 24px rgba(99, 102, 241, 0.8),
+                 0 0 36px rgba(99, 102, 241, 0.6);
+  }
+}
+       .logo-icon {
+            height: 42px;
+            width: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            color: white;
+            font-size: 20px;
+            position: relative;
+        }
+        
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            z-index: -1;
+            filter: blur(6px);
+            opacity: 0.6;
+        }
+         .footer {
+      background: white;
+      border-top: 1px solid #E5E7EB;
+      padding: 24px;
+      margin-top: 40px;
+    }
+    
+
+
+    </style>
+</head>
+<body class="p-6">
+    <!-- Floating background shapes -->
+    <div class="floating-shape floating-shape-1"></div>
+    <div class="floating-shape floating-shape-2"></div>
+    
+    <!-- Navbar -->
+    <!-- Navbar -->
+<nav class="navbar mb-8 rounded-xl p-4 bg-white shadow-lg bounce-in">
+    <div class="flex items-center justify-between">
+        <!-- Left side: Logo and Title -->
+        <div class="flex items-center space-x-3">
+            <div class="logo-container flex items-center">
+                <div class="logo-icon relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
+                    <i class="fas fa-brain text-lg"></i>
+                    <span class="live-indicator absolute top-1 right-1 w-2 h-2 bg-green-400 rounded-full"></span>
+                </div>
+                <!-- Brand name -->
+                <span class="ml-3 text-xl font-bold" style="font-family: 'Poppins', sans-serif; color: #130960;">
+                    NeuralFlow
+                </span>
+            </div>
+        </div>
+
+        <!-- Right side: Workflow badge + Profile + Logout -->
+        <div class="flex items-center space-x-4">
+            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium flex items-center">
+                <span class="pulse-dot"></span> Workflow 
+            </span>
+            <div class="tooltip">
+                <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white cursor-pointer glow-effect">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="tooltip-text">Your Profile</span>
+            </div>
+            <button class="p-2 text-gray-500 hover:text-gray-700 tooltip">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="tooltip-text">Logout</span>
+            </button>
+        </div>
+    </div>
+</nav>
+<br>
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-10 fade-in">
+            <h1 style="font-family: 'Poppins', sans-serif; font-size:40px; color: #130960;">Data Workflow </h1>
+            
+            <p style="font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; font-size:large; color: #243054;">Upload your data, choose a task, and pick a model to build your machine learning workflow</p>
+            <div class="header-accent mx-auto"></div>
+        </div>
+        
+        <div class="space-y-8">
+            <!-- Step 1: Upload -->
+            <div class="card fade-in" style="animation-delay: 0.1s">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        <span class="step-number">1</span>Upload Your Data
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="file-input-wrapper mb-6">
+                        <div id="uploadArea" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50/50">
+                            <div class="text-blue-500 mb-4">
+                                <i class="fas fa-cloud-upload-alt text-5xl"></i>
+                            </div>
+                            <p class="text-gray-700 mb-2 font-medium">Drag & drop your CSV file here</p>
+                            <p class="text-gray-500 text-sm mb-4">Supports files up to 10MB</p>
+                            <button class="btn-primary text-white font-medium py-2.5 px-8 rounded-lg inline-flex items-center">
+                                <i class="fas fa-file-csv mr-2"></i>Browse Files
+                            </button>
+                            <input type="file" id="csvFile" accept=".csv" class="mt-4" />
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center bg-blue-50 p-3 rounded-lg">
+                        <input id="headerCheckbox" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                        <label for="headerCheckbox" class="ml-2 block text-sm text-gray-700">First row contains headers</label>
+                    </div>
+                    
+                    <div class="loading-spinner mt-4"></div>
+                </div>
+            </div>
+            
+            <!-- Step 2: Preview and Confirm -->
+            <div class="card fade-in" style="animation-delay: 0.2s">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        <span class="step-number">2</span>Preview & Confirm Data
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="text-gray-600">Rows: </span>
+                                <span id="rowCount" class="font-medium ml-1">0</span>
+                                <span class="text-gray-600 ml-4">Columns: </span>
+                                <span id="colCount" class="font-medium ml-1">0</span>
+                            </div>
+                            <button id="previewBtn" class="btn-primary text-white font-medium py-2 px-5 rounded-lg btn-disabled inline-flex items-center" disabled>
+                                <i class="fas fa-eye mr-2"></i>Preview Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container mb-6">
+                        <table id="csvTable" class="min-w-full bg-white">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase">No data available</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="p-4 text-sm text-gray-500 text-center">Upload a CSV file to preview data</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="text-center pt-2">
+                        <button id="confirmBtn" class="btn-primary text-white font-medium py-3 px-8 rounded-lg btn-disabled inline-flex items-center" disabled>
+                            <i class="fas fa-check-circle mr-2"></i>Confirm Data
+                        </button>
+                        <p class="text-gray-500 text-sm mt-3">Please preview your data before confirming</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3: Task Selection -->
+            <div class="card fade-in" style="animation-delay: 0.3s">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        <span class="step-number">3</span>Select Task & Model
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-gray-600 mb-6">Choose the type of machine learning task you want to perform:</p>
+                    
+                    <!-- Task cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div id="clusteringCard" class="task-card stagger-item">
+                            <div class="disabled-overlay" id="clusteringOverlay">
+                                <span class="text-sm text-gray-500 bg-white px-2 py-1 rounded"></span>
+                            </div>
+                            <div class="task-icon text-purple-500">
+                                <i class="fas fa-object-group"></i>
+                            </div>
+                            <h3 class="font-medium text-center text-gray-800">Clustering</h3>
+                            <p class="text-sm text-gray-500 mt-2 text-center">Group similar data points</p>
+                        </div>
+
+                        <div id="classificationCard" class="task-card stagger-item">
+                            <div class="disabled-overlay" id="classificationOverlay">
+                                <span class="text-sm text-gray-500 bg-white px-2 py-1 rounded"></span>
+                            </div>
+                            <div class="task-icon text-blue-500">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <h3 class="font-medium text-center text-gray-800">Classification</h3>
+                            <p class="text-sm text-gray-500 mt-2 text-center">Categorize data into classes</p>
+                        </div>
+
+                        <div id="regressionCard" class="task-card stagger-item">
+                            <div class="disabled-overlay" id="regressionOverlay">
+                                <span class="text-sm text-gray-500 bg-white px-2 py-1 rounded"></span>
+                            </div>
+                            <div class="task-icon text-green-500">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="font-medium text-center text-gray-800">Regression</h3>
+                            <p class="text-sm text-gray-500 mt-2 text-center">Predict continuous values</p>
+                        </div>
+                    </div>
+                    <div id="blendedCard" class="task-card stagger-item">
+    <div class="disabled-overlay" id="blendedOverlay">
+        <span class="text-sm text-gray-500 bg-white px-2 py-1 rounded"></span>
+    </div>
+    <div class="task-icon text-orange-500">
+        <i class="fas fa-layer-group"></i>
+    </div>
+    <h3 class="font-medium text-center text-gray-800">Blended Mode</h3>
+    <p class="text-sm text-gray-500 mt-2 text-center">SOM + MLP Integration</p>
+</div>
+
+                    <!-- Clustering note -->
+                    <div id="clusteringNote" 
+                         class="hidden mt-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+                        ⚠️ For clustering tasks, the <strong>target column</strong> will not be used and will be hidden during analysis.
+                    </div>
+                    <!-- Blended Mode explanation -->
+<div id="blendedNote" 
+     class="hidden mt-4 p-4 bg-orange-50 border border-orange-300 rounded-lg text-sm text-orange-800">
+    <div class="flex items-start">
+        <div class="flex-shrink-0">
+            <i class="fas fa-lightbulb text-orange-500 text-lg mt-0.5"></i>
+        </div>
+        <div class="ml-3">
+            <h4 class="font-semibold text-orange-900 mb-2">Blended Mode: SOM + MLP Integration</h4>
+            <p class="mb-2">This advanced mode combines two neural network architectures:</p>
+            <ul class="list-disc list-inside space-y-1 text-orange-700">
+                <li><strong>SOM:</strong> Discovers hidden patterns and clusters</li>
+                <li><strong>MLP:</strong> Performs supervised learning</li>
+            </ul>
+            <p class="mt-2 text-orange-900 font-medium">Result: Enhanced feature learning and improved accuracy.</p>
+        </div>
+    </div>
+</div>
+                    
+                    <!-- Normalization Progress (hidden but functional) -->
+                    <div id="normalizationSection" class="mt-6 hidden">
+                        <div class="mb-2 flex justify-between items-center">
+                            <span class="text-gray-700 font-medium">Normalization progress:</span>
+                            <span id="normalizationPercent" class="font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="normalizationProgress" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Your data is being normalized for better model performance...</p>
+                    </div>
+                    
+                    <!-- Model Selection Section -->
+                    <div id="modelSelectionSection" class="mt-8 pt-6 border-t border-gray-200 hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 section-title">
+                            <i class="fas fa-cube mr-2 text-indigo-500"></i>Model Selection
+                        </h3>
+                        
+                        <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-200">
+                            <div class="flex items-center">
+                                <div class="text-blue-500 mr-3 text-xl">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <p class="text-sm text-blue-700">
+                                    Your data has been normalized and is ready for modeling. Select an existing model or train a new one.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-medium text-blue-800 mb-3 flex items-center">
+                                    <i class="fas fa-history mr-2"></i>Your Uploaded Models
+                                </h4>
+                                <p class="text-sm text-blue-700 mb-4">Select from models you've previously uploaded</p>
+                                
+                                <div id="existingModels" class="model-history">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h4 class="font-medium text-green-800 mb-3 flex items-center">
+                                    <i class="fas fa-plus-circle mr-2"></i>Train New Model
+                                </h4>
+                                <p class="text-sm text-green-700 mb-4">Train a new model with your data</p>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Model Name</label>
+                                    <input type="text" id="modelName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 transition" placeholder="Enter a name for your model">
+                                </div>
+                                
+                                <button id="trainModelBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition transform hover:-translate-y-0.5 inline-flex items-center justify-center">
+                                    <i class="fas fa-cogs mr-2"></i>Train New Model
+                                </button>
+                            </div>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="confirmationDialog" class="confirmation-dialog fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-xl max-w-md w-full p-6 transform transition-all">
+                <div class="text-green-500 text-center mb-4">
+                    <i class="fas fa-check-circle text-5xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 text-center mb-2">Data Confirmed!</h3>
+                <p class="text-gray-600 text-center mb-6">Your CSV data has been successfully uploaded and confirmed.</p>
+                
+                <div class="bg-green-50 p-4 rounded-lg mb-6 border border-green-200">
+                    <div class="flex justify-center">
+                        <div class="text-center">
+                            <span class="text-green-800 font-medium" id="confirmedRows">0</span>
+                            <span class="text-green-600"> rows and </span>
+                            <span class="text-green-800 font-medium" id="confirmedCols">0</span>
+                            <span class="text-green-600"> columns</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button id="dialogCancelBtn" class="flex-1 btn-secondary text-gray-800 font-medium py-3 px-4 rounded-lg">
+                        Close
+                    </button>
+                    <button id="dialogActionBtn" class="flex-1 btn-primary text-white font-medium py-3 px-4 rounded-lg inline-flex items-center justify-center">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+    <!-- Enhanced Footer -->
+<footer class="footer bg-white shadow-md">
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      
+      <!-- About -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">NeuralFlow</h3>
+        <p class="text-gray-600 mb-4">Advanced Self-Organizing Maps for machine learning and data visualization.</p>
+        <div class="flex items-center">
+          <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+          <span class="text-sm text-gray-500">System status: Operational</span>
+        </div>
+      </div>
+
+      <!-- Resources -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
+        <ul class="space-y-2">
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Documentation</a></li>
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Tutorials</a></li>
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">API Reference</a></li>
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Blog</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Support</h3>
+        <ul class="space-y-2">
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Help Center</a></li>
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Community Forum</a></li>
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Contact Us</a></li>
+          <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Status</a></li>
+        </ul>
+      </div>
+
+      <!-- Connect -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Connect</h3>
+        <div class="flex space-x-4 mb-4">
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+            <i class="fab fa-github"></i>
+          </a>
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+            <i class="fab fa-twitter"></i>
+          </a>
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+            <i class="fab fa-linkedin"></i>
+          </a>
+          <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+            <i class="fab fa-discord"></i>
+          </a>
+        </div>
+        <div class="mt-4">
+          <p class="text-sm text-gray-600">Subscribe to our newsletter</p>
+          <div class="flex mt-2">
+            <input type="email" placeholder="Your email" class="flex-1 border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button class="bg-indigo-600 text-white px-4 rounded-r-lg hover:bg-indigo-700 transition-colors">Join</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+      <p class="text-gray-500 mb-4 md:mb-0">© 2025 NeuralFlow. All rights reserved.</p>
+      <div class="flex space-x-6">
+        <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Terms of Service</a>
+        <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Privacy Policy</a>
+        <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Cookie Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const csvFileInput = document.getElementById('csvFile');
+            const previewBtn = document.getElementById('previewBtn');
+            const confirmBtn = document.getElementById('confirmBtn');
+            const csvTable = document.getElementById('csvTable');
+            const headerCheckbox = document.getElementById('headerCheckbox');
+            const confirmationDialog = document.getElementById('confirmationDialog');
+            const dialogCancelBtn = document.getElementById('dialogCancelBtn');
+            const dialogActionBtn = document.getElementById('dialogActionBtn');
+            const rowCountElement = document.getElementById('rowCount');
+            const colCountElement = document.getElementById('colCount');
+            const confirmedRowsElement = document.getElementById('confirmedRows');
+            const confirmedColsElement = document.getElementById('confirmedCols');
+            const loadingSpinner = document.querySelector('.loading-spinner');
+            const uploadArea = document.getElementById('uploadArea');
+            const modelSelectionSection = document.getElementById('modelSelectionSection');
+            const normalizationSection = document.getElementById('normalizationSection');
+            const existingModelsContainer = document.getElementById('existingModels');
+            const modelNameInput = document.getElementById('modelName');
+            const trainModelBtn = document.getElementById('trainModelBtn');
+            const proceedBtn = document.getElementById('proceedBtn');
+            const normalizationProgress = document.getElementById('normalizationProgress');
+            const normalizationPercent = document.getElementById('normalizationPercent');
+            
+            // Get task cards and overlays
+            const clusteringCard = document.getElementById('clusteringCard');
+            const classificationCard = document.getElementById('classificationCard');
+            const regressionCard = document.getElementById('regressionCard');
+            const clusteringOverlay = document.getElementById('clusteringOverlay');
+            const classificationOverlay = document.getElementById('classificationOverlay');
+            const regressionOverlay = document.getElementById('regressionOverlay');
+            const blendedCard = document.getElementById('blendedCard');
+            const blendedOverlay = document.getElementById('blendedOverlay');
+            
+            let csvData = [];
+            let headers = [];
+            let selectedTask = null;
+            let normalizedData = [];
+            let currentTrainedModel = null;
+            let dataConfirmed = false;
+            
+            // For demonstration - in a real app, this would be stored per user via Django
+            let userUploadedModels = JSON.parse(localStorage.getItem('userUploadedModels')) || {};
+            // Animate staggered items
+            document.querySelectorAll('.stagger-item').forEach((item, index) => {
+                item.style.animation = `fadeIn 0.5s ease forwards ${index * 0.2}s`;
+            });
+            
+            // File upload handler
+            csvFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                processCSVFile(file);
+            });
+            
+            // Preview button handler
+            previewBtn.addEventListener('click', function() {
+                renderTable();
+                
+                // Enable confirm button
+                confirmBtn.classList.remove('btn-disabled');
+                confirmBtn.classList.add('btn-enabled');
+                confirmBtn.removeAttribute('disabled');
+            });
+            
+            // Confirm button handler
+            confirmBtn.addEventListener('click', function() {
+                confirmedRowsElement.textContent = csvData.length;
+                confirmedColsElement.textContent = headers.length;
+                confirmationDialog.classList.add('active');
+                
+                // Mark data as confirmed
+                dataConfirmed = true;
+                
+                // Enable task cards
+                enableTaskCards();
+            });
+            
+            // Enable task cards function
+           function enableTaskCards() {
+    [clusteringCard, classificationCard, regressionCard, blendedCard].forEach(card => {
+        card.classList.add('enabled');
+    });
+    
+    // Remove overlays
+    clusteringOverlay.style.display = 'none';
+    classificationOverlay.style.display = 'none';
+    regressionOverlay.style.display = 'none';
+    blendedOverlay.style.display = 'none';
+    
+    // Add click event listeners
+    clusteringCard.onclick = () => selectTask('clustering');
+    classificationCard.onclick = () => selectTask('classification');
+    regressionCard.onclick = () => selectTask('regression');
+    blendedCard.onclick = () => selectTask('blended');
+}
+            
+            // Dialog buttons
+            dialogCancelBtn.addEventListener('click', function() {
+                confirmationDialog.classList.remove('active');
+            });
+            
+            dialogActionBtn.addEventListener('click', function() {
+                // Create a downloadable CSV file
+                const csvContent = generateCSVContent();
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'confirmed_data.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                confirmationDialog.classList.remove('active');
+            });
+            
+            // Task selection function
+          window.selectTask = function(task) {
+    // Only allow task selection if data is confirmed
+    if (!dataConfirmed) {
+        alert("Please upload and confirm your data first before selecting a task.");
+        return;
+    }
+    
+    selectedTask = task;
+    
+    // Remove selected class from all task cards
+    document.querySelectorAll('.task-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Add selected class to the chosen task
+    document.getElementById(task + 'Card').classList.add('selected');
+    
+    // Get note elements
+    const clusteringNote = document.getElementById('clusteringNote');
+    const blendedNote = document.getElementById('blendedNote');
+    
+    // Hide all notes first
+    clusteringNote.classList.add('hidden');
+    blendedNote.classList.add('hidden');
+    
+    // Show relevant note based on task
+    if (task === 'clustering') {
+        clusteringNote.classList.remove('hidden');
+    } else if (task === 'blended') {
+        blendedNote.classList.remove('hidden');
+    }
+    
+    // Show normalization section
+    normalizationSection.classList.remove('hidden');
+    
+    // Start normalization process
+    normalizeData();
+};
+            
+            // Normalize data function
+            function normalizeData() {
+    // Show loading animation
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 5;
+        if (progress > 100) progress = 100;
+        normalizationProgress.style.width = progress + '%';
+        normalizationPercent.textContent = progress + '%';
+        
+        if (progress === 100) {
+            clearInterval(progressInterval);
+            
+            // Process normalization (in a real app, this would be done server-side)
+            processNormalization();
+            
+            // Show model selection section
+            modelSelectionSection.classList.remove('hidden');
+            modelSelectionSection.classList.add('slide-down');
+            
+            // MISSING LINE - ADD THIS:
+            loadUploadedModelsForTask(selectedTask);
+        }
+    }, 100);
+}
+            // Enhanced function to load uploaded models for the selected task
+// Enhanced function to load uploaded models for the selected task with better delete functionality
+function loadUploadedModelsForTask(task) {
+    console.log("Loading models for task:", task);
+    const userUploadedModels = JSON.parse(localStorage.getItem('userUploadedModels')) || {};
+    const models = userUploadedModels[task] || [];
+    
+    // Clear existing models container
+    existingModelsContainer.innerHTML = '';
+    
+    if (models.length === 0) {
+        // Show empty state
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <div class="text-5xl mb-4">📁</div>
+            <p class="font-medium text-gray-800">No uploaded models found</p>
+            <p class="text-sm mt-2 text-gray-600">You haven't uploaded any ${task} models yet.</p>
+            <p class="text-sm text-gray-500">Train your first model to get started!</p>
+        `;
+        existingModelsContainer.appendChild(emptyState);
+    } else {
+        // Add models to the container with enhanced display and delete functionality
+        models.forEach((model, index) => {
+            const modelCard = document.createElement('div');
+            modelCard.className = 'model-card relative group';
+            
+            // Format the model type and parameters display
+            let paramDisplay = '';
+            if (model.parameters) {
+                paramDisplay = `
+                    <div class="text-xs text-gray-500 mt-1">
+                        Grid: ${model.parameters.gridWidth}x${model.parameters.gridHeight}, 
+                        Iterations: ${model.parameters.iterations}
+                    </div>
+                `;
+            }
+            
+            modelCard.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 cursor-pointer" onclick="selectExistingModel('${task}', ${model.id})">
+                        <h4 class="font-medium text-gray-800 flex items-center">
+                            <i class="fas fa-brain mr-2 text-indigo-500"></i>
+                            ${model.name}
+                        </h4>
+                        <p class="text-sm text-gray-500 mt-1">
+                            ${model.type || 'SOM'} • ${model.format || 'Unknown Format'}
+                        </p>
+                        ${paramDisplay}
+                        <p class="text-xs text-gray-400 mt-1">Created: ${model.date}</p>
+                        <div class="mt-2 text-xs text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fas fa-mouse-pointer mr-1"></i> Click to use this model
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
+                            ${task}
+                        </span>
+                        <button class="delete-btn opacity-0 group-hover:opacity-100 transition-all duration-200 p-2 rounded-full hover:bg-red-50 text-red-400 hover:text-red-600 transform hover:scale-110" 
+                                onclick="deleteModel('${task}', ${model.id})" 
+                                title="Delete this model">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Hover overlay for better UX -->
+                <div class="absolute inset-0 bg-indigo-50 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none"></div>
+            `;
+            
+            existingModelsContainer.appendChild(modelCard);
+        });
+    }
+}
+
+// Function to select an existing model
+function selectExistingModel(task, modelId) {
+    const userUploadedModels = JSON.parse(localStorage.getItem('userUploadedModels')) || {};
+    const models = userUploadedModels[task] || [];
+    const selectedModel = models.find(model => model.id === modelId);
+    
+    if (selectedModel) {
+        // Show confirmation dialog
+        const confirmDialog = document.createElement('div');
+        confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+        confirmDialog.innerHTML = `
+            <div class="bg-white rounded-xl max-w-md w-full p-6 transform transition-all">
+                <div class="text-center">
+                    <div class="text-indigo-500 mb-4">
+                        <i class="fas fa-brain text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Use Existing Model</h3>
+                    <p class="text-gray-600 mb-4">You've selected:</p>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+                        <p class="font-medium text-gray-800">${selectedModel.name}</p>
+                        <p class="text-sm text-gray-500">Type: ${selectedModel.type || 'SOM'}</p>
+                        <p class="text-sm text-gray-500">Format: ${selectedModel.format}</p>
+                        <p class="text-sm text-gray-500">Created: ${selectedModel.date}</p>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 mb-6">This model will be used for ${task} on your current dataset.</p>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="this.closest('.fixed').remove()" 
+                            class="flex-1 bg-gray-100 text-gray-800 font-medium py-3 px-4 rounded-lg hover:bg-gray-200 transition">
+                        Cancel
+                    </button>
+                    <button onclick="confirmModelSelection('${selectedModel.name}', '${task}'); this.closest('.fixed').remove()" 
+                            class="flex-1 bg-indigo-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-indigo-700 transition">
+                        Use Model
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(confirmDialog);
+    }
+}
+
+// Function to confirm model selection and proceed
+function confirmModelSelection(modelName, task) {
+    // Show success message
+    const successMsg = document.createElement('div');
+    successMsg.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 transform translate-x-full';
+    successMsg.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>Model <strong>${modelName}</strong> selected for ${task}!</span>
+        </div>
+    `;
+    
+    document.body.appendChild(successMsg);
+    
+    // Animate in
+    setTimeout(() => {
+        successMsg.style.transform = 'translateX(0)';
+        successMsg.style.transition = 'transform 0.3s ease';
+    }, 100);
+    
+    // Remove after delay
+    setTimeout(() => {
+        successMsg.style.transform = 'translateX(100%)';
+        setTimeout(() => successMsg.remove(), 300);
+    }, 3000);
+    
+    // In a real app, this would make an API call to use the selected model
+    console.log(`Using existing model: ${modelName} for task: ${task}`);
+}
+
+// Enhanced delete function with better confirmation dialog
+function deleteModel(task, modelId) {
+    // Prevent event bubbling to avoid triggering model selection
+    if (event) event.stopPropagation();
+
+    
+    const userUploadedModels = JSON.parse(localStorage.getItem('userUploadedModels')) || {};
+    const models = userUploadedModels[task] || [];
+    const modelToDelete = models.find(model => model.id === modelId);
+    
+    if (!modelToDelete) return;
+    
+    // Create custom confirmation dialog
+    const confirmDialog = document.createElement('div');
+    confirmDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+    confirmDialog.innerHTML = `
+        <div class="bg-white rounded-xl max-w-md w-full p-6 transform transition-all">
+            <div class="text-center">
+                <div class="text-red-500 mb-4">
+                    <i class="fas fa-exclamation-triangle text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Delete Model</h3>
+                <p class="text-gray-600 mb-4">Are you sure you want to delete this model?</p>
+                
+                <div class="bg-red-50 p-4 rounded-lg mb-6 border border-red-200 text-left">
+                    <p class="font-medium text-gray-800">${modelToDelete.name}</p>
+                    <p class="text-sm text-gray-500">Type: ${modelToDelete.type || 'SOM'}</p>
+                    <p class="text-sm text-gray-500">Created: ${modelToDelete.date}</p>
+                </div>
+                
+                <p class="text-sm text-red-600 mb-6">⚠️ This action cannot be undone.</p>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button onclick="this.closest('.fixed').remove()" 
+                        class="flex-1 bg-gray-100 text-gray-800 font-medium py-3 px-4 rounded-lg hover:bg-gray-200 transition">
+                    Cancel
+                </button>
+                <button onclick="confirmDeleteModel('${task}', ${modelId}); this.closest('.fixed').remove()" 
+                        class="flex-1 bg-red-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-red-700 transition">
+                    Delete Model
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(confirmDialog);
+}
+
+// Function to confirm and execute model deletion
+function confirmDeleteModel(task, modelId) {
+    let userUploadedModels = JSON.parse(localStorage.getItem('userUploadedModels')) || {};
+    
+    if (userUploadedModels[task]) {
+        const modelToDelete = userUploadedModels[task].find(model => model.id === modelId);
+        userUploadedModels[task] = userUploadedModels[task].filter(model => model.id !== modelId);
+        localStorage.setItem('userUploadedModels', JSON.stringify(userUploadedModels));
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+        successMsg.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-trash mr-2"></i>
+                <span>Model <strong>${modelToDelete?.name || 'Unknown'}</strong> deleted successfully!</span>
+            </div>
+        `;
+        
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+        
+        // Reload the models display
+        loadUploadedModelsForTask(task);
+    }
+}
+
+// Add some enhanced CSS for better delete button styling
+const additionalCSS = `
+<style>
+.model-card {
+    transition: all 0.3s ease;
+}
+
+.model-card:hover {
+    border-color: #6366f1;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    transform: scale(1.1);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.group:hover .delete-btn {
+    opacity: 1;
+}
+
+.model-card .group:hover {
+    background-color: rgba(99, 102, 241, 0.02);
+}
+</style>
+`;
+
+// Inject the CSS if it doesn't exist
+if (!document.querySelector('#enhanced-model-css')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'enhanced-model-css';
+    styleElement.innerHTML = additionalCSS.replace(/<\/?style>/g, '');
+    document.head.appendChild(styleElement);
+}
+            
+            // Process normalization
+            function processNormalization() {
+                // Create a copy of the data for normalization
+                normalizedData = JSON.parse(JSON.stringify(csvData));
+                
+                // Simulate normalization process (Z-score normalization)
+                for (let i = 0; i < normalizedData.length; i++) {
+                    for (let j = 0; j < normalizedData[i].length; j++) {
+                        // Check if the value is numeric
+                        if (!isNaN(parseFloat(normalizedData[i][j])) && isFinite(normalizedData[i][j])) {
+                            // Simulate Z-score normalization (value - mean) / stdDev
+                            const value = parseFloat(normalizedData[i][j]);
+                            // Simulate normalized value between -2 and 2
+                            const normalizedValue = (value / 50 - 1).toFixed(4);
+                            normalizedData[i][j] = normalizedValue;
+                        }
+                    }
+                }
+                
+                // In a real app, we would send the normalized data to the Django backend
+                console.log("Data normalized successfully");
+            }
+            
+           
+            
+           // Train model button handler
+trainModelBtn.addEventListener('click', function() {
+    const modelName = modelNameInput.value.trim();
+    
+    if (!modelName) {
+        alert('Please enter a name for your model');
+        return;
+    }
+    
+    // Create a new model object (not yet uploaded)
+    currentTrainedModel = {
+        id: Date.now(), // Using timestamp as ID for simplicity
+        name: modelName,
+        date: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
+    };
+    
+    // Clear the input
+    modelNameInput.value = '';
+    
+    // Store data in sessionStorage for the next page
+    sessionStorage.setItem('selectedTask', selectedTask);
+    sessionStorage.setItem('csvData', JSON.stringify(csvData));
+    sessionStorage.setItem('headers', JSON.stringify(headers));
+    sessionStorage.setItem('normalizedData', JSON.stringify(normalizedData));
+    sessionStorage.setItem('modelName', modelName);
+    
+    // Determine which page to navigate to based on selected task
+    let targetPage;
+    switch(selectedTask) {
+        case 'clustering':
+            targetPage = 'som.html';
+            break;
+        case 'classification':
+            targetPage = 'classification.html';
+            break;
+        case 'regression':
+            targetPage = 'regression.html';
+            break;
+        case 'blended':
+            targetPage = 'blended.html'; // You'll need to create this
+            break;
+        default:
+            alert('Please select a task first');
+            return;
+    }
+    
+    // Show a brief message before navigation
+    const originalText = trainModelBtn.innerHTML;
+    trainModelBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>';
+    trainModelBtn.disabled = true;
+    
+    // Navigate after a short delay
+    setTimeout(() => {
+        window.location.href = targetPage;
+    }, 1500);
+});
+            
+            // Proceed button handler
+            proceedBtn.addEventListener('click', function() {
+                if (!currentTrainedModel) {
+                    alert('Please train a new model first');
+                    return;
+                }
+                
+                // In a real app, this would redirect to the parameter tuning page
+                alert(`Proceeding to parameter tuning for: ${currentTrainedModel.name}\nIn a real application, this would redirect to the parameter tuning page.`);
+            });
+            
+            // Process CSV file
+            function processCSVFile(file) {
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                
+                // Read file
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const text = event.target.result;
+                    parseCSV(text);
+                    
+                    // Enable preview button
+                    previewBtn.classList.remove('btn-disabled');
+                    previewBtn.classList.add('btn-enabled');
+                    previewBtn.removeAttribute('disabled');
+                    
+                    loadingSpinner.style.display = 'none';
+                };
+                reader.onerror = function() {
+                    alert('Error reading file');
+                    loadingSpinner.style.display = 'none';
+                };
+                reader.readAsText(file);
+            }
+            
+            // Generate CSV content from parsed data
+            function generateCSVContent() {
+                let content = '';
+                
+                // Add headers
+                if (headers.length > 0) {
+                    content += headers.join(',') + '\n';
+                }
+                
+                // Add data rows
+                for (const row of csvData) {
+                    content += row.join(',') + '\n';
+                }
+                
+                return content;
+            }
+            
+            // Parse CSV with proper handling of quoted values
+            function parseCSV(text) {
+                const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+                
+                if (lines.length === 0) {
+                    alert('The CSV file appears to be empty');
+                    return;
+                }
+                
+                // Parse headers
+                if (headerCheckbox.checked) {
+                    headers = parseCSVLine(lines[0]);
+                    lines.shift(); // Remove header line
+                } else {
+                    // Generate headers if not present
+                    const firstLineCells = parseCSVLine(lines[0]);
+                    headers = firstLineCells.map((_, index) => `Column ${index + 1}`);
+                }
+                
+                // Parse data rows
+                csvData = [];
+                for (let i = 0; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue; // Skip empty lines
+                    
+                    const cells = parseCSVLine(lines[i]);
+                    if (cells.length > 0) {
+                        csvData.push(cells);
+                    }
+                }
+                
+                // Update row and column count
+                rowCountElement.textContent = csvData.length;
+                colCountElement.textContent = headers.length;
+            }
+            
+            // Proper CSV line parsing that handles quoted values
+            function parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                let quoteChar = '"';
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === quoteChar) {
+                        // Toggle quote state
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        // Add completed cell to result
+                        result.push(current);
+                        current = '';
+                    } else {
+                        // Add character to current cell
+                        current += char;
+                    }
+                }
+                
+                // Add the last cell
+                result.push(current);
+                
+                return result;
+            }
+            
+            // Render the table with CSV data
+            function renderTable() {
+                if (csvData.length === 0) {
+                    csvTable.innerHTML = `
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase">No data available</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="p-4 text-sm text-gray-500 text-center">Upload a CSV file to preview data</td>
+                            </tr>
+                        </tbody>
+                    `;
+                    return;
+                }
+                
+                // Build header row
+                let headerHtml = '<thead class="bg-gray-50 sticky top-0"><tr>';
+                headers.forEach(header => {
+                    headerHtml += `<th class="p-3 text-left text-xs font-medium text-gray-500 uppercase">${header}</th>`;
+                });
+                headerHtml += '</tr></thead>';
+                
+                // Build data rows
+                let bodyHtml = '<tbody class="divide-y divide-gray-200">';
+                csvData.forEach((row, rowIndex) => {
+                    bodyHtml += `<tr class="${rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'} highlight">`;
+                    
+                    row.forEach(cell => {
+                        bodyHtml += `<td class="p-3 text-sm text-gray-700">${cell}</td>`;
+                    });
+                    
+                    // Fill in missing cells if any
+                    if (row.length < headers.length) {
+                        for (let i = row.length; i < headers.length; i++) {
+                            bodyHtml += '<td class="p-3 text-sm text-gray-300">-</td>';
+                        }
+                    }
+                    
+                    bodyHtml += '</tr>';
+                });
+                bodyHtml += '</tbody>';
+                
+                csvTable.innerHTML = headerHtml + bodyHtml;
+                
+                // Add highlight animation to rows
+                setTimeout(() => {
+                    const rows = csvTable.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        row.classList.add('highlight');
+                    });
+                }, 100);
+            }
+            
+            // Drag and drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                uploadArea.classList.add('drag-over');
+            }
+            
+            function unhighlight() {
+                uploadArea.classList.remove('drag-over');
+            }
+            
+            uploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+                
+                if (file && file.name.endsWith('.csv')) {
+                    processCSVFile(file);
+                } else {
+                    alert('Please drop a valid CSV file');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralFlow - Apply Neural Network Model</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --secondary-gradient: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --purple-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            --blue-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --green-gradient: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+        
+        .card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 18px;
+            transition: all 0.3s ease;
+            background: white;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.35);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-gradient);
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .logo-icon {
+            height: 42px;
+            width: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            color: white;
+            font-size: 20px;
+            position: relative;
+        }
+        
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            z-index: -1;
+            filter: blur(6px);
+            opacity: 0.6;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge-success {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+        
+        .status-badge-warning {
+            background-color: #fffbeb;
+            color: #d97706;
+        }
+        
+        .status-badge-info {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .floating-shape-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--purple-gradient);
+            top: -150px;
+            right: -150px;
+        }
+        
+        .floating-shape-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--blue-gradient);
+            bottom: -100px;
+            left: -100px;
+        }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 8px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 3px;
+        }
+        
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
+        }
+        
+        .result-placeholder {
+            background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            flex-direction: column;
+        }
+        
+        .cluster-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .training-progress {
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        
+        .training-progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        
+        .parameter-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #eff6ff;
+            color: #2563eb;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .data-info-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        .edit-form {
+            display: none;
+        }
+        
+        .view-mode {
+            display: block;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            
+            border-color: #6366f1;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .auto-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: #e0f2fe;
+            color: #0c4a6e;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .neuron-label {
+            display: block;
+            font-size: 12px;
+            color: #4b5563;
+            margin-bottom: 4px;
+        }
+        
+        .input-hint {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .info-box {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <!-- Floating background shapes -->
+    <div class="floating-shape floating-shape-1"></div>
+    <div class="floating-shape floating-shape-2"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="flex items-center justify-between">
+            <!-- Left side: Logo and Title -->
+            <div class="flex items-center space-x-3">
+                <div class="logo-icon relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg">
+                    <i class="fas fa-brain text-lg"></i>
+                    <span class="live-indicator absolute top-1 right-1 w-2 h-2 bg-green-400 rounded-full"></span>
+                </div>
+                <!-- Brand name -->
+                <span class="ml-3 text-xl font-bold" style="font-family: 'Poppins', sans-serif; color: #130960;">
+                    NeuralFlow
+                </span>
+            </div>
+
+            <!-- Right side: Workflow badge + Profile + Logout -->
+            <div class="flex items-center space-x-4">
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium flex items-center">
+                    <span class="pulse-dot mr-2"></span> Workflow 
+                </span>
+                <div class="tooltip">
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center text-white cursor-pointer">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="tooltip-text"></span>
+                </div>
+                <button class="p-2 text-gray-500 hover:text-gray-700 tooltip">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="tooltip-text"></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    <br>
+    <br>
+    <br>
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-10 fade-in">
+            <h1 style="font-family: 'Poppins', sans-serif; font-size:40px; color: #130960;">Apply Regression model</h1>
+            <p style="font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; font-size:large; color: #243054;">Apply your pre-trained neural network model to a new dataset and view results</p>
+            <div class="header-accent mx-auto"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Model Summary and Parameters -->
+            <div class="lg:col-span-1">
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-cube mr-2 text-indigo-500"></i> Model Summary
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-6">
+                            <div class="bg-indigo-100 p-4 rounded-full inline-flex items-center justify-center mb-4">
+                                <i class="fas fa-network-wired text-3xl text-indigo-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800" id="modelNameDisplay"> Sample Regression Model </h3>
+                        </div>
+                    
+                        <div class="mb-6 view-mode" id="viewMode">
+                            <h4 class="font-medium text-gray-800 mb-3">Model Parameters</h4>
+                            <div id="parametersContainer">
+                                <span class="parameter-badge">Input Size: <span id="inputSizeValue">34</span></span>
+                                <span class="parameter-badge">Hidden Layers: <span id="hiddenLayersValue">2</span></span>
+                                <span class="parameter-badge">Learning Rate: <span id="learningRateValue">0.5</span></span>
+                                <span class="parameter-badge">Batch Size: <span id="batchSizeValue">32</span></span>
+                                <span class="parameter-badge">Epochs: <span id="epochsValue">50</span></span>
+                                <span class="parameter-badge">Activation: <span id="activationValue">ReLU</span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit Form (initially hidden) -->
+                        <div class="edit-form" id="editForm">
+                            <h4 class="font-medium text-gray-800 mb-3">Edit Model Parameters</h4>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Model Name</label>
+                                <input type="text" id="modelNameInput" class="form-input" value="NN_Model">
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                                <!-- Input fields -->
+                                <div>
+                                    <label class="form-label">Input size (features)</label>
+                                    <div class="flex items-center">
+                                        <input type="number" id="inputSizeInput" value="34" class="form-input" disabled>
+                                        <span class="auto-badge ml-2">Auto</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="form-label">Hidden Activation</label>
+                                    <select id="activationInput" class="form-input">
+                                        <option>ReLU</option>
+                                        <option>Sigmoid</option>
+                                        <option value="sigmoid">Tanh</option>
+                                      
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="form-label">Learning rate</label>
+                                    <input type="number" id="learningRateInput" step="0.01" value="0.5" class="form-input">
+                                </div>
+
+                                <div>
+                                    <label class="form-label">Hidden layers</label>
+                                    <input type="number" id="hiddenLayersInput" value="2" class="form-input">
+                                </div>
+
+                                <div>
+                                    <label class="form-label">Batch size</label>
+                                    <input type="number" id="batchSizeInput" value="32" class="form-input">
+                                </div>
+
+                                <div>
+                                    <label class="form-label">Epochs</label>
+                                    <input type="number" id="epochsInput" value="50" class="form-input">
+                                </div>
+                            </div>
+
+                            <!-- Neurons per hidden layer -->
+                            <div class="mb-6" id="neuronsContainer">
+                                <label class="form-label">Neurons per hidden layer</label>
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="neuron-label">Layer 1</label>
+                                        <input type="number" id="layer1Input" value="64" class="form-input">
+                                    </div>
+                                    <div>
+                                        <label class="neuron-label">Layer 2</label>
+                                        <input type="number" id="layer2Input" value="32" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Output Layer Configuration -->
+                            <div class="mb-6">
+                                <div class="flex items-center mb-2">
+                                    <h3 class="form-label">Output Layer</h3>
+                                    <span class="auto-badge ml-2">Auto</span>
+                                </div>
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <label class="input-hint">Activation function</label>
+                                        <select id="outputActivation" class="form-input">
+                                            <option value="linear">Linear</option>
+                                            <option value="softmax">Softmax</option>
+                                            <option value="sigmoid">Sigmoid</option>
+                                            <option value="relu">ReLU</option>
+                                        </select>
+                                        <div class="input-hint" id="activationExplanation">For binary classification</div>
+                                    </div>
+                                </div>
+                                <div class="info-box p-3 rounded-lg mt-3">
+                                    <p class="text-xs text-gray-700">Output neurons will be automatically determined based on your data</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-2 mt-4">
+                                <button id="saveChangesBtn" class="flex-1 btn-primary text-white font-medium py-2 px-4 rounded-lg">
+                                    Save Changes
+                                </button>
+                                <button id="cancelEditBtn" class="flex-1 btn-secondary font-medium py-2 px-4 rounded-lg">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button id="editDetailsBtn" class="w-full btn-secondary font-medium py-2.5 px-4 rounded-lg inline-flex items-center justify-center mb-3">
+                            <i class="fas fa-edit mr-2"></i>Edit Model Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Training and Results -->
+            <div class="lg:col-span-2">
+                <div class="card mb-6">
+                    <div class="card-header">
+                        <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-play-circle mr-2 text-indigo-500"></i> Apply Model to Dataset
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-info-card mb-6">
+                            <div class="flex items-center">
+                                <div class="text-blue-500 mr-3 text-xl">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-blue-800">New Dataset Information</h4>
+                                    <p class="text-sm text-blue-700">Ionosphere dataset with 34 features and 351 instances</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-200">
+                            <div class="flex items-center">
+                                <div class="text-blue-500 mr-3 text-xl">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <p class="text-sm text-blue-700">
+                                    Your model parameters are already configured. Click "Run" to apply this neural network model to your dataset.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center py-6" id="trainingSection">
+                            <button id="trainBtn" class="btn-primary text-white font-medium py-3 px-8 rounded-lg inline-flex items-center">
+                                <i class="fas fa-cogs mr-2"></i>Run
+                            </button>
+                            
+                            <div class="loading-spinner mt-4" id="trainingSpinner"></div>
+                            
+                            <div class="mt-4 hidden" id="trainingProgressContainer">
+                                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                    <span>Training Progress</span>
+                                    <span id="progressPercent">0%</span>
+                                </div>
+                                <div class="training-progress">
+                                    <div class="training-progress-fill" id="trainingProgress"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card hidden" id="resultsSection">
+                    <div class="card-header">
+                        <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-chart-bar mr-2 text-indigo-500"></i> Training Results
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h4 class="font-medium text-gray-700 mb-1">MSE</h4>
+    <p class="text-2xl font-bold text-indigo-600">0.32</p>
+  </div>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h4 class="font-medium text-gray-700 mb-1">R² Score</h4>
+    <p class="text-2xl font-bold text-indigo-600">0.89</p>
+  </div>
+ 
+                            <div class="metric-card">
+                                <div class="metric-value" id="trainingTime">2.4s</div>
+                                <div class="metric-label">Training Time</div>
+                                <p class="text-xs text-gray-500 mt-2">For 351 instances</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="visualization rounded-xl">
+                                <img src="img/OH.png" alt="Training Results Visualization" class="w-full aspect-[16/9] object-contain rounded-lg shadow-md">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between pt-4 border-t border-gray-200">
+                            <button class="btn-secondary font-medium py-2.5 px-5 rounded-lg inline-flex items-center">
+                                <i class="fas fa-download mr-2"></i>Export Results
+                            </button>
+                            
+                            <div class="flex space-x-3">
+                                <button class="bg-red-100 text-red-700 font-medium py-2.5 px-5 rounded-lg inline-flex items-center">
+                                    <i class="fas fa-trash mr-2"></i>Delete Model
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <br><br>
+    <div class="max-w-6xl mx-auto px-6 pb-6">
+    <div class="text-center">
+        <button onclick="window.location.href='workflow.html'" class="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition duration-300 shadow-md hover:shadow-lg inline-flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Workflow
+        </button>
+    </div>
+</div>
+    <!-- Footer -->
+    <footer class="footer bg-white shadow-md mt-12">
+        <div class="max-w-6xl mx-auto px-6 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- About -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">NeuralFlow</h3>
+                    <p class="text-gray-600 mb-4">Advanced machine learning workflows for data scientists.</p>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <span class="text-sm text-gray-500">System status: Operational</span>
+                    </div>
+                </div>
+
+                <!-- Resources -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Documentation</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Tutorials</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">API Reference</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Blog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h3 class="text-lg font-sem-semibold text-gray-900 mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Community Forum</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Status</a></li>
+                    </ul>
+                </div>
+
+                <!-- Connect -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Connect</h3>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:text-indigo-600 hover:bg-gray-200 transition-colors">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom -->
+            <div class="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 mb-4 md:mb-0">© 2023 NeuralFlow. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Terms of Service</a>
+                    <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-gray-600 hover:text-indigo-600 transition-colors">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const trainBtn = document.getElementById('trainBtn');
+            const trainingSpinner = document.getElementById('trainingSpinner');
+            const trainingProgressContainer = document.getElementById('trainingProgressContainer');
+            const trainingProgress = document.getElementById('trainingProgress');
+            const progressPercent = document.getElementById('progressPercent');
+            const resultsSection = document.getElementById('resultsSection');
+            const accuracyValue = document.getElementById('accuracyValue');
+            const precisionValue = document.getElementById('precisionValue');
+            const recallValue = document.getElementById('recallValue');
+            const trainingTime = document.getElementById('trainingTime');
+            
+            // Edit functionality elements
+            const editDetailsBtn = document.getElementById('editDetailsBtn');
+            const viewMode = document.getElementById('viewMode');
+            const editForm = document.getElementById('editForm');
+            const saveChangesBtn = document.getElementById('saveChangesBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            
+            // Form inputs
+            const modelNameInput = document.getElementById('modelNameInput');
+            const inputSizeInput = document.getElementById('inputSizeInput');
+            const hiddenLayersInput = document.getElementById('hiddenLayersInput');
+            const learningRateInput = document.getElementById('learningRateInput');
+            const batchSizeInput = document.getElementById('batchSizeInput');
+            const epochsInput = document.getElementById('epochsInput');
+            const activationInput = document.getElementById('activationInput');
+            const layer1Input = document.getElementById('layer1Input');
+            const layer2Input = document.getElementById('layer2Input');
+            const outputActivation = document.getElementById('outputActivation');
+            
+            // Display elements
+            const modelNameDisplay = document.getElementById('modelNameDisplay');
+            const inputSizeValue = document.getElementById('inputSizeValue');
+            const hiddenLayersValue = document.getElementById('hiddenLayersValue');
+            const learningRateValue = document.getElementById('learningRateValue');
+            const batchSizeValue = document.getElementById('batchSizeValue');
+            const epochsValue = document.getElementById('epochsValue');
+            const activationValue = document.getElementById('activationValue');
+            
+            // Train button handler
+            trainBtn.addEventListener('click', function() {
+                // Show loading spinner and hide button
+                trainBtn.classList.add('hidden');
+                trainingSpinner.style.display = 'block';
+                trainingProgressContainer.classList.remove('hidden');
+                
+                // Simulate training progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 5;
+                    if (progress > 100) progress = 100;
+                    
+                    trainingProgress.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+                    
+                    if (progress === 100) {
+                        clearInterval(interval);
+                        
+                        // Hide spinner and show results
+                        trainingSpinner.style.display = 'none';
+                        resultsSection.classList.remove('hidden');
+                        
+                        // Generate random results for demonstration
+                        const randomAccuracy = (Math.random() * 0.2 + 0.8).toFixed(2);
+                        const randomPrecision = (Math.random() * 0.2 + 0.8).toFixed(2);
+                        const randomRecall = (Math.random() * 0.2 + 0.8).toFixed(2);
+                        const randomTime = (Math.random() * 2 + 1.5).toFixed(1);
+                        
+                        accuracyValue.textContent = randomAccuracy;
+                        precisionValue.textContent = randomPrecision;
+                        recallValue.textContent = randomRecall;
+                        trainingTime.textContent = randomTime + 's';
+                    }
+                }, 200);
+            });
+            
+            // Edit details button handler
+            editDetailsBtn.addEventListener('click', function() {
+                // Switch to edit mode
+                viewMode.style.display = 'none';
+                editForm.style.display = 'block';
+                editDetailsBtn.style.display = 'none';
+            });
+            
+            // Save changes button handler
+            saveChangesBtn.addEventListener('click', function() {
+                // Update display values with form values
+                modelNameDisplay.textContent = modelNameInput.value;
+                inputSizeValue.textContent = inputSizeInput.value;
+                hiddenLayersValue.textContent = hiddenLayersInput.value;
+                learningRateValue.textContent = learningRateInput.value;
+                batchSizeValue.textContent = batchSizeInput.value;
+                epochsValue.textContent = epochsInput.value;
+                activationValue.textContent = activationInput.value;
+                
+                // Switch back to view mode
+                viewMode.style.display = 'block';
+                editForm.style.display = 'none';
+                editDetailsBtn.style.display = 'block';
+                
+                // Show success message
+                alert('Model details updated successfully!');
+            });
+            
+            // Cancel edit button handler
+            cancelEditBtn.addEventListener('click', function() {
+                // Reset form values to current display values
+                modelNameInput.value = modelNameDisplay.textContent;
+                inputSizeInput.value = inputSizeValue.textContent;
+                hiddenLayersInput.value = hiddenLayersValue.textContent;
+                learningRateInput.value = learningRateValue.textContent;
+                batchSizeInput.value = batchSizeValue.textContent;
+                epochsInput.value = epochsValue.textContent;
+                activationInput.value = activationValue.textContent;
+                
+                // Switch back to view mode
+                viewMode.style.display = 'block';
+                editForm.style.display = 'none';
+                editDetailsBtn.style.display = 'block';
+            });
+        });
+        
+    </script>
+</body>
+</html>
